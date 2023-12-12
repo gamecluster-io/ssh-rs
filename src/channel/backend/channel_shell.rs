@@ -58,6 +58,19 @@ impl ShellBrocker {
         }
         Ok(out)
     }
+    /// this method will try to read as much data as we can from the server,
+    /// but it won't block until at least one packet is received and gives an Option in the result Type back
+    ///
+    pub fn try_read(&mut self) -> SshResult<Option<Vec<u8>>> {
+        let mut out = match self.try_recv()? {
+            Some(i) => i,
+            None => return Ok(None),
+        };
+        while let Ok(Some(mut data)) = self.try_recv() {
+            out.append(&mut data)
+        }
+        Ok(Some(out))
+    }
 
     /// this method send `buf` to the remote pty
     ///
